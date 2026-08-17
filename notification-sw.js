@@ -1,8 +1,10 @@
 self.addEventListener("install", () => {
-  self.skipWaiting();
+  console.log("[notification-sw] installed");
 });
 
 self.addEventListener("activate", (event) => {
+  console.log("[notification-sw] activated");
+
   event.waitUntil(self.clients.claim());
 });
 
@@ -20,15 +22,13 @@ self.addEventListener("notificationclick", (event) => {
         type: "window",
         includeUncontrolled: true,
       })
-      .then(async (windowClients) => {
-        for (const client of windowClients) {
-          if ("navigate" in client) {
-            await client.navigate(targetUrl);
-          }
+      .then((windowClients) => {
+        const existingClient = windowClients.find((client) => {
+          return client.url === targetUrl;
+        });
 
-          if ("focus" in client) {
-            return client.focus();
-          }
+        if (existingClient) {
+          return existingClient.focus();
         }
 
         return self.clients.openWindow(targetUrl);
